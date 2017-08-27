@@ -74,7 +74,12 @@ set(CMAKE_C_COMPILER        avr-gcc -mmcu=${AVR_MCU})
 set(CMAKE_CXX_COMPILER      avr-g++ -mmcu=${AVR_MCU})
 
 # Compiler and linker flags
-set(AVR_C_FLAGS                    "-ffunction-sections -fdata-sections")
+string(TOUPPER ${AVR_MCU} _avr_mcu)
+string(REPLACE "XMEGA" "xmega" _avr_mcu ${_avr_mcu})
+string(REPLACE "MEGA"  "mega"  _avr_mcu ${_avr_mcu})
+string(REPLACE "TINY"  "tiny"  _avr_mcu ${_avr_mcu})
+set(AVR_C_MACROS                   "-DAVR -D_AVR -D__AVR_${_avr_mcu}__")
+set(AVR_C_FLAGS                    "${AVR_C_MACROS} -ffunction-sections -fdata-sections")
 set(AVR_LINK_FLAGS                 "-Wl,--gc-sections,--relax")
 
 set(CMAKE_C_FLAGS_INIT             "${AVR_C_FLAGS}")
