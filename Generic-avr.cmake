@@ -100,47 +100,47 @@ mark_as_advanced(AVRDUDE_BIN AVRSIZE_BIN)
 # Create helper targets to upload the executable to a AVR microcontroller
 # using AVRDUDE (if found)
 ##########################################################################
-function(ADD_AVR_FIRMWARE EXEC_TARGET)
-  set(HEX_FILE      "${EXEC_TARGET}.hex")
-  set(EEPROM_IMAGE  "${EXEC_TARGET}_EEPROM.hex")
+function(ADD_AVR_FIRMWARE exec_target)
+  set(hex_file      "${exec_target}.hex")
+  set(eeprom_image  "${exec_target}_EEPROM.hex")
 
   if (AVRSIZE_BIN AND AVR_PRINT_SIZE)
     # Print the size after building
-    add_custom_command(TARGET ${EXEC_TARGET} POST_BUILD
-      COMMAND ${AVRSIZE_BIN} -C --mcu=${AVR_MCU} ${EXEC_TARGET}
+    add_custom_command(TARGET ${exec_target} POST_BUILD
+      COMMAND ${AVRSIZE_BIN} -C --mcu=${AVR_MCU} ${exec_target}
     )
   endif()
 
-  add_custom_command(OUTPUT ${HEX_FILE}
-    COMMAND ${CMAKE_OBJCOPY} -j .text -j .data -O ihex ${EXEC_TARGET} ${HEX_FILE}
-    DEPENDS ${EXEC_TARGET}
+  add_custom_command(OUTPUT ${hex_file}
+    COMMAND ${CMAKE_OBJCOPY} -j .text -j .data -O ihex ${exec_target} ${hex_file}
+    DEPENDS ${exec_target}
   )
 
-  add_custom_command(OUTPUT ${EEPROM_IMAGE}
+  add_custom_command(OUTPUT ${eeprom_image}
     COMMAND ${CMAKE_OBJCOPY} -j .eeprom --set-section-flags=.eeprom=alloc,load
       --change-section-lma .eeprom=0 --no-change-warnings
-      -O ihex ${EXEC_TARGET} ${EEPROM_IMAGE}
-    DEPENDS ${EXEC_TARGET}
+      -O ihex ${exec_target} ${eeprom_image}
+    DEPENDS ${exec_target}
   )
 
   if (AVRDUDE_BIN)
-    add_custom_target(upload_${EXEC_TARGET}
+    add_custom_target(upload_${exec_target}
       ${AVRDUDE_BIN} -p ${AVR_MCU} -c ${AVRDUDE_PROGRAMMER} ${AVRDUDE_OTHER_ARGS}
          -b ${AVRDUDE_BITRATE}
-         -U flash:w:${HEX_FILE}:i
+         -U flash:w:${hex_file}:i
          -P ${AVRDUDE_PORT}
-      DEPENDS ${HEX_FILE}
-      COMMENT "Uploading ${HEX_FILE} to ${AVR_MCU} using ${AVRDUDE_PROGRAMMER}"
+      DEPENDS ${hex_file}
+      COMMENT "Uploading ${hex_file} to ${AVR_MCU} using ${AVRDUDE_PROGRAMMER}"
       USES_TERMINAL
     )
 
-    add_custom_target(upload_${EXEC_TARGET}_EEPROM
+    add_custom_target(upload_${exec_target}_EEPROM
       ${AVRDUDE_BIN} -p ${AVR_MCU} -c ${AVRDUDE_PROGRAMMER} ${AVRDUDE_OTHER_ARGS}
          -b ${AVRDUDE_BITRATE}
-         -U eeprom:w:${EEPROM_IMAGE}
+         -U eeprom:w:${eeprom_image}
          -P ${AVRDUDE_PORT}
-      DEPENDS ${EEPROM_IMAGE}
-      COMMENT "Uploading ${EEPROM_IMAGE} to ${AVR_MCU} using ${AVRDUDE_PROGRAMMER}"
+      DEPENDS ${eeprom_image}
+      COMMENT "Uploading ${eeprom_image} to ${AVR_MCU} using ${AVRDUDE_PROGRAMMER}"
       USES_TERMINAL
     )
   endif()
